@@ -1,5 +1,8 @@
 package com.mysap.sd.product.controller;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -16,6 +19,8 @@ import io.swagger.v3.oas.annotations.Operation;
 @RestController
 @RequestMapping("/products")
 public class ProductController {
+	
+	private static final Logger log = LoggerFactory.getLogger(ProductController.class);
 
     @Autowired
     private ProductRepository repository;
@@ -30,6 +35,8 @@ public class ProductController {
             return ResponseEntity.badRequest().body("Duplicate code.");
         }
         Product saved = repository.save(product);
+        log.info("Product created: {}", product.getCode());
+        log.warn("Payment delay for {}", product.getCode());
         return ResponseEntity.status(201).body(saved);
     }
 
