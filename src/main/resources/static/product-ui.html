@@ -1,24 +1,94 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Create Product</title>
+  <title>Product Manager</title>
+  <style>
+    table, th, td {
+      border: 1px solid gray;
+      border-collapse: collapse;
+      padding: 6px;
+    }
+    table {
+      margin-top: 20px;
+      width: 100%;
+    }
+  </style>
 </head>
 <body>
-  <h2>Create Product</h2>
-
+  <h2>Product Form</h2>
   <form id="productForm">
+    <input type="hidden" id="productId" />
     <label>Code: <input type="text" id="code" required /></label><br><br>
     <label>Name: <input type="text" id="name" required /></label><br><br>
     <label>Type: <input type="text" id="type" required /></label><br><br>
-    <button type="submit">Create</button>
+    <button type="submit">Create / Update</button>
+    <button type="button" id="deactivateBtn">Deactivate</button>
   </form>
 
   <p id="result"></p>
 
+  <h3>Product List</h3>
+  <table id="productTable">
+    <thead>
+      <tr>
+        <th>Select</th>
+        <th>ID</th>
+        <th>Code</th>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Active</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+
   <script>
-    document.getElementById('productForm').addEventListener('submit', function (e) {
+    const productForm = document.getElementById('productForm');
+    const result = document.getElementById('result');
+    const tableBody = document.querySelector('#productTable tbody');
+    const deactivateBtn = document.getElementById('deactivateBtn');
+
+    function fetchAndRender() {
+      fetch('http://localhost:8080/products')
+        .then(res => res.json())
+        .then(data => {
+          tableBody.innerHTML = '';
+          data.forEach(product => {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+              <td><input type="checkbox" class="select-product" data-id="${product.id}" /></td>
+              <td>${product.id}</td>
+              <td>${product.code}</td>
+              <td>${product.name}</td>
+              <td>${product.type}</td>
+              <td>${product.active}</td>
+            `;
+            tableBody.appendChild(row);
+          });
+
+          document.querySelectorAll('.select-product').forEach(box => {
+            box.addEventListener('change', function () {
+              const row = this.closest('tr');
+              const [id, code, name, type] = Array.from(row.children).slice(1, 5).map(td => td.innerText);
+
+              document.getElementById('productId').value = id;
+              document.getElementById('code').value = code;
+              document.getElementById('name').value = name;
+              document.getElementById('type').value = type;
+
+              document.querySelectorAll('.select-product').forEach(b => b !== this && (b.checked = false));
+            });
+          });
+        });
+    }
+
+    // Create or Update
+    productForm.addEventListener('submit', function (e) {
       e.preventDefault();
+      const id = document.getElementById('productId').value;
+      const method = id ? 'PUT' : 'POST';
+      const url = id ? `http://localhost:8080/products/${id}` : 'http://localhost:8080/products';
 
       const data = {
         code: document.getElementById('code').value,
@@ -26,26 +96,35 @@
         type: document.getElementById('type').value
       };
 
-      fetch('http://localhost:8080/products', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
+      fetch(url, {
+        method: method,
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data)
       })
-      .then(async response => {
-        if (response.ok) {
-          const result = await response.json();
-          document.getElementById('result').innerText = '✅ Product created: ' + JSON.stringify(result);
-        } else {
-          const error = await response.text();
-          document.getElementById('result').innerText = '❌ Error: ' + error;
-        }
-      })
-      .catch(error => {
-        document.getElementById('result').innerText = '❌ Network error: ' + error;
-      });
+        .then(async res => {
+          const msg = await res.text();
+          result.innerText = res.ok ? `✅ Success: ${msg}` : `❌ Error: ${msg}`;
+          fetchAndRender();
+          productForm.reset();
+        })
+        .catch(err => result.innerText = `❌ Network error: ${err}`);
     });
+
+    // Deactivate
+    deactivateBtn.addEventListener('click', function () {
+      const id = document.getElementById('productId').value;
+      if (!id) return alert('Select a product to deactivate.');
+      fetch(`http://localhost:8080/products/${id}/deactivate`, { method: 'PATCH' })
+        .then(async res => {
+          const msg = await res.text();
+          result.innerText = res.ok ? `🟡 Deactivated: ${msg}` : `❌ Error: ${msg}`;
+          fetchAndRender();
+          productForm.reset();
+        });
+    });
+
+    // Initial load
+    fetchAndRender();
   </script>
 </body>
 </html>
