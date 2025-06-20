@@ -16,8 +16,11 @@ public class Product {
     private String name;
 
     private String type;
+    
+    @Column(name = "active")
+    private boolean active = true;
 
-    // Getters & Setters
+	// Getters & Setters
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
 
@@ -29,4 +32,11 @@ public class Product {
 
     public String getType() { return type; }
     public void setType(String type) { this.type = type; }
+    
+    public boolean isActive() {
+		return active;
+	}
+	public void setActive(boolean active) {
+		this.active = active;
+	}
 }
