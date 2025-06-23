@@ -4,6 +4,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -53,6 +54,7 @@ public class ProductController {
             .orElse(ResponseEntity.notFound().build());
     }
     
+    @CrossOrigin(origins = "*") // or specific origin
     @PutMapping("/{id}")
     public ResponseEntity<?> updateProduct(@PathVariable Long id, @RequestBody Product updated) {
         return repository.findById(id)
@@ -66,6 +68,7 @@ public class ProductController {
             .orElse(ResponseEntity.notFound().build());
     }
 
+    @CrossOrigin(origins = "*") // or specific origin
     @GetMapping
     @Operation(summary = "Get ALL products")
     public ResponseEntity<?> getAll() {
