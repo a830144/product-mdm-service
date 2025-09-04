@@ -17,6 +17,8 @@ import org.springframework.web.bind.annotation.RestController;
 import com.mysap.sd.product.entity.Product;
 import com.mysap.sd.product.repository.ProductRepository;
 
+import io.micrometer.core.instrument.Counter;
+import io.micrometer.core.instrument.MeterRegistry;
 import io.swagger.v3.oas.annotations.Operation;
 
 @RestController
@@ -26,7 +28,15 @@ public class ProductController {
 	private static final Logger log = LoggerFactory.getLogger(ProductController.class);
 
     @Autowired
-    private ProductRepository repository;
+    private final ProductRepository repository;
+    private final Counter productRequestsCounter;
+    
+    public ProductController(ProductRepository repository, MeterRegistry registry) {
+        this.repository = repository;
+        this.productRequestsCounter = Counter.builder("product_requests_total")
+                .description("Total product requests handled in controller")
+                .register(registry);
+    }
 
     @PostMapping
     @Operation(summary = "ADD A NEW PRODUCT")
@@ -72,6 +82,7 @@ public class ProductController {
     @GetMapping
     @Operation(summary = "Get ALL products")
     public ResponseEntity<?> getAll() {
+    	productRequestsCounter.increment();
         return ResponseEntity.ok(repository.findAll());
     }
 }
