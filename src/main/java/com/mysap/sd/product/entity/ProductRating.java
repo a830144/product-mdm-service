@@ -15,7 +15,10 @@ import jakarta.persistence.ManyToOne;
 @Entity
 public class ProductRating {
 
-    @Id
+    public BigDecimal getRating() {
+		return rating;
+	}
+	@Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
