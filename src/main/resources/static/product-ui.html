@@ -43,11 +43,41 @@
     <tbody></tbody>
   </table>
 
+  <button type="button" id="showRatingsBtn">Show Ratings for Selected Product</button>
+
+  <!-- Ratings Section -->
+  <div id="ratingsSection" style="display:none;">
+    <h3>Ratings</h3>
+    <table id="ratingTable">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Score</th>
+          <th>Comment</th>
+          <th>Created At</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+
+    <h4>Add Rating</h4>
+    <form id="ratingForm">
+      <input type="hidden" id="ratingProductId" />
+      <label>Score: <input type="number" id="score" min="1" max="5" required /></label><br><br>
+      <label>Comment: <input type="text" id="comment" required /></label><br><br>
+      <button type="submit">Add Rating</button>
+    </form>
+  </div>
+
   <script>
     const productForm = document.getElementById('productForm');
     const result = document.getElementById('result');
     const tableBody = document.querySelector('#productTable tbody');
     const deactivateBtn = document.getElementById('deactivateBtn');
+    const ratingsSection = document.getElementById('ratingsSection');
+    const ratingTableBody = document.querySelector('#ratingTable tbody');
+
+    let selectedProductId = null;
 
     function fetchAndRender() {
       fetch('http://localhost:8080/products')
@@ -76,6 +106,7 @@
               document.getElementById('code').value = code;
               document.getElementById('name').value = name;
               document.getElementById('type').value = type;
+              selectedProductId = id;
 
               document.querySelectorAll('.select-product').forEach(b => b !== this && (b.checked = false));
             });
@@ -83,7 +114,7 @@
         });
     }
 
-    // Create or Update
+    // Create or Update Product
     productForm.addEventListener('submit', function (e) {
       e.preventDefault();
       const id = document.getElementById('productId').value;
@@ -110,7 +141,7 @@
         .catch(err => result.innerText = `❌ Network error: ${err}`);
     });
 
-    // Deactivate
+    // Deactivate Product
     deactivateBtn.addEventListener('click', function () {
       const id = document.getElementById('productId').value;
       if (!id) return alert('Select a product to deactivate.');
@@ -120,6 +151,49 @@
           result.innerText = res.ok ? `🟡 Deactivated: ${msg}` : `❌ Error: ${msg}`;
           fetchAndRender();
           productForm.reset();
+        });
+    });
+
+    // Show Ratings
+    document.getElementById('showRatingsBtn').addEventListener('click', function () {
+      if (!selectedProductId) return alert('Select a product first.');
+      fetch(`http://localhost:8080/ratings/product/${selectedProductId}`)
+        .then(res => res.json())
+        .then(ratings => {
+          ratingTableBody.innerHTML = '';
+          ratings.forEach(r => {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+              <td>${r.id}</td>
+              <td>${r.score}</td>
+              <td>${r.comment}</td>
+              <td>${r.createdAt}</td>
+            `;
+            ratingTableBody.appendChild(row);
+          });
+          ratingsSection.style.display = 'block';
+          document.getElementById('ratingProductId').value = selectedProductId;
+        });
+    });
+
+    // Add Rating
+    document.getElementById('ratingForm').addEventListener('submit', function (e) {
+      e.preventDefault();
+      const productId = document.getElementById('ratingProductId').value;
+      const data = {
+        score: document.getElementById('score').value,
+        comment: document.getElementById('comment').value
+      };
+      fetch(`http://localhost:8080/ratings/product/${productId}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+      })
+        .then(res => res.json())
+        .then(() => {
+          // Refresh ratings after adding
+          document.getElementById('showRatingsBtn').click();
+          document.getElementById('ratingForm').reset();
         });
     });
 
