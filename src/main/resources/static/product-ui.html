@@ -157,7 +157,7 @@
     // Show Ratings
     document.getElementById('showRatingsBtn').addEventListener('click', function () {
       if (!selectedProductId) return alert('Select a product first.');
-      fetch(`http://localhost:8080/ratings/product/${selectedProductId}`)
+      fetch(`http://localhost:8080/products/${selectedProductId}/ratings`)
         .then(res => res.json())
         .then(ratings => {
           ratingTableBody.innerHTML = '';
@@ -184,7 +184,7 @@
         score: document.getElementById('score').value,
         comment: document.getElementById('comment').value
       };
-      fetch(`http://localhost:8080/ratings/product/${productId}`, {
+      fetch(`http://localhost:8080/products/${selectedProductId}/ratings`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data)

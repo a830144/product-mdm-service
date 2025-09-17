@@ -27,7 +27,8 @@ public class ProductRatingController {
         this.productRepository = productRepository;
         this.ratingRepository = ratingRepository;
     }
-
+    
+    @CrossOrigin(origins = "*") // or specific origin
     @PostMapping
     @Operation(summary = "Add a new rating for a product")
     public ResponseEntity<?> addRating(@PathVariable Long productId,
@@ -40,6 +41,7 @@ public class ProductRatingController {
         }).orElse(ResponseEntity.notFound().build());
     }
 
+    @CrossOrigin(origins = "*") // or specific origin
     @GetMapping
     @Operation(summary = "Get all ratings for a product")
     public ResponseEntity<List<ProductRating>> getRatings(@PathVariable Long productId) {
