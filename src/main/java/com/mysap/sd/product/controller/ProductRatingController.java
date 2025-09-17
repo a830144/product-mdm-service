@@ -35,6 +35,7 @@ public class ProductRatingController {
                                        @RequestBody ProductRating rating) {
         return productRepository.findById(productId).map(product -> {
             rating.setProduct(product); // set association
+            log.info("Before Added check:::rating {} for product {}", rating.getRating(), product.getCode());
             ProductRating saved = ratingRepository.save(rating);
             log.info("Added rating {} for product {}", rating.getRating(), product.getCode());
             return ResponseEntity.status(201).body(saved);
